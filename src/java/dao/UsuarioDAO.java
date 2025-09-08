@@ -148,4 +148,19 @@ public class UsuarioDAO {
         } catch (Exception e) {
         }
     }
+
+    public int contar() {
+        String sql = "SELECT COUNT(*) FROM tbl_usuarios";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
 }

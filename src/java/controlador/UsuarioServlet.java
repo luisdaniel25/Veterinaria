@@ -43,7 +43,7 @@ public class UsuarioServlet extends HttpServlet {
             try {
                 nuevo.setRol(Integer.parseInt(request.getParameter("rol")));
             } catch (NumberFormatException ex) {
-                nuevo.setRol(3); // por defecto cliente si falla
+                nuevo.setRol(3);
             }
 
             String idEspecialidadStr = request.getParameter("id_especialidad");
@@ -93,7 +93,7 @@ public class UsuarioServlet extends HttpServlet {
                 int id = Integer.parseInt(request.getParameter("id"));
                 dao.eliminar(id);
             } catch (NumberFormatException ex) {
-                // opcional: setAttribute error
+
             }
             response.sendRedirect(request.getContextPath() + "/vistas/usuarios/listar.jsp");
         } else if (accion.equals("logout")) {
