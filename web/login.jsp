@@ -22,14 +22,15 @@
                             <%= request.getAttribute("error") != null ? request.getAttribute("error") : ""%>
                         </div>
                     </form>
-
+                    <div class="mt-4">
+                        <a href="vistas/usuarios/nuevo.jsp" class="btn btn-success w-100">Registrarse</a>
+                    </div>
                     <!-- Enlace para restablecer contraseña -->
                     <div class="text-center mt-3">
                         <a href="reset.jsp" class="text-decoration-none text-primary">
                             ¿Olvidaste tu contraseña?
                         </a>
                     </div>
-
                     <!-- Mensajes de feedback -->
                     <div class="text-center mt-3">
                         <% if (request.getParameter("error") != null) { %>
