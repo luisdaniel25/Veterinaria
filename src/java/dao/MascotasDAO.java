@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import modelo.Mascotas;
-import modelo.Conexion;
+import util.Conexion;
 
 public class MascotasDAO {
 

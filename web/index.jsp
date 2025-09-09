@@ -23,7 +23,7 @@
 
             <div class="mt-4">
                 <a href="login.jsp" class="btn btn-success px-4">Iniciar Sesión</a>
-                <a href="registro.jsp" class="btn btn-outline-success px-4">Registrarse</a>
+                <a href="vistas/usuarios/nuevo.jsp" class="btn btn-outline-success px-4">Registrarse</a>
             </div>
         </div>
 

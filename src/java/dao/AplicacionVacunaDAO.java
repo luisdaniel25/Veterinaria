@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 import java.sql.*;
 import modelo.AplicacionVacuna;
-import static modelo.Conexion.conectarBD;
+import static util.Conexion.conectarBD;
 
 public class AplicacionVacunaDAO {
 

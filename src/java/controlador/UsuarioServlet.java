@@ -2,6 +2,7 @@ package controlador;
 
 import dao.UsuarioDAO;
 import modelo.Usuario;
+import util.PasswordUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -21,13 +22,11 @@ public class UsuarioServlet extends HttpServlet {
 
         if (accion == null) {
             response.sendRedirect(request.getContextPath() + "/index.jsp");
-            return;
-        }
-
-        if (accion.equals("login")) {
+        } else if (accion.equals("login")) {
             String correo = request.getParameter("correo");
             String contrasena = request.getParameter("contrasena");
-            Usuario u = dao.validar(correo, contrasena);
+            Usuario u = dao.login(correo, contrasena);
+
             if (u != null) {
                 request.getSession().setAttribute("usuario", u);
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
@@ -39,62 +38,26 @@ public class UsuarioServlet extends HttpServlet {
             Usuario nuevo = new Usuario();
             nuevo.setNombre(request.getParameter("nombre"));
             nuevo.setCorreo(request.getParameter("correo"));
-            nuevo.setContrasena(request.getParameter("contrasena"));
-            try {
-                nuevo.setRol(Integer.parseInt(request.getParameter("rol")));
-            } catch (NumberFormatException ex) {
-                nuevo.setRol(3);
-            }
+            nuevo.setContrasena(PasswordUtil.hash(request.getParameter("contrasena")));
 
-            String idEspecialidadStr = request.getParameter("id_especialidad");
-            if (idEspecialidadStr != null && !idEspecialidadStr.trim().isEmpty()) {
-                try {
-                    nuevo.setId_especialidad(Integer.parseInt(idEspecialidadStr));
-                } catch (NumberFormatException ex) {
-                    nuevo.setId_especialidad(0);
-                }
-            } else {
-                nuevo.setId_especialidad(0);
-            }
-
-            dao.agregar(nuevo);
+            dao.crear(nuevo);
             response.sendRedirect(request.getContextPath() + "/vistas/usuarios/listar.jsp");
         } else if (accion.equals("actualizar")) {
             Usuario upd = new Usuario();
-            try {
-                upd.setId_usuario(Integer.parseInt(request.getParameter("id")));
-            } catch (NumberFormatException ex) {
-                upd.setId_usuario(0);
-            }
+            upd.setId_usuario(Integer.parseInt(request.getParameter("id")));
             upd.setNombre(request.getParameter("nombre"));
             upd.setCorreo(request.getParameter("correo"));
-            upd.setContrasena(request.getParameter("clave"));
-            try {
-                upd.setRol(Integer.parseInt(request.getParameter("rol")));
-            } catch (NumberFormatException ex) {
-                upd.setRol(3);
-            }
 
-            String idEspecialidadStr = request.getParameter("id_especialidad");
-            if (idEspecialidadStr != null && !idEspecialidadStr.trim().isEmpty()) {
-                try {
-                    upd.setId_especialidad(Integer.parseInt(idEspecialidadStr));
-                } catch (NumberFormatException ex) {
-                    upd.setId_especialidad(0);
-                }
-            } else {
-                upd.setId_especialidad(0);
+            String nuevaClave = request.getParameter("contrasena");
+            if (nuevaClave != null && !nuevaClave.isEmpty()) {
+                upd.setContrasena(PasswordUtil.hash(nuevaClave));
             }
 
             dao.actualizar(upd);
             response.sendRedirect(request.getContextPath() + "/vistas/usuarios/listar.jsp");
         } else if (accion.equals("eliminar")) {
-            try {
-                int id = Integer.parseInt(request.getParameter("id"));
-                dao.eliminar(id);
-            } catch (NumberFormatException ex) {
-
-            }
+            int id = Integer.parseInt(request.getParameter("id"));
+            dao.eliminar(id);
             response.sendRedirect(request.getContextPath() + "/vistas/usuarios/listar.jsp");
         } else if (accion.equals("logout")) {
             HttpSession ses = request.getSession(false);

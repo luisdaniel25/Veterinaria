@@ -6,8 +6,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import modelo.Conexion;
-import static modelo.Conexion.conectarBD;
+import util.Conexion;
+import static util.Conexion.conectarBD;
 
 import modelo.HistorialMedico;
 

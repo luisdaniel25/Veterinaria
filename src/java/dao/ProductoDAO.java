@@ -1,6 +1,6 @@
 package dao;
 
-import modelo.Conexion;
+import util.Conexion;
 import modelo.Productos;
 
 import java.sql.*;

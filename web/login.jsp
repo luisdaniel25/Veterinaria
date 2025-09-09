@@ -22,6 +22,24 @@
                             <%= request.getAttribute("error") != null ? request.getAttribute("error") : ""%>
                         </div>
                     </form>
+
+                    <!-- Enlace para restablecer contraseña -->
+                    <div class="text-center mt-3">
+                        <a href="reset.jsp" class="text-decoration-none text-primary">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
+
+                    <!-- Mensajes de feedback -->
+                    <div class="text-center mt-3">
+                        <% if (request.getParameter("error") != null) { %>
+                        <p class="text-danger fw-bold">Credenciales inválidas ❌</p>
+                        <% } %>
+
+                        <% if ("restablecido".equals(request.getParameter("msg"))) { %>
+                        <p class="text-success fw-bold">Contraseña restablecida ✅</p>
+                        <% }%>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 package dao;
 
 import modelo.DetallesVentas;
-import modelo.Conexion;
+import util.Conexion;
 import java.sql.*;
 import java.util.List;
 import java.math.BigDecimal;

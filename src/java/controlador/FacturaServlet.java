@@ -25,7 +25,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import modelo.Conexion;
+import util.Conexion;
 import modelo.DetallesVentas;
 
 @WebServlet("/factura")

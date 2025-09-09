@@ -3,7 +3,7 @@ package dao;
 import java.sql.*;
 import java.util.*;
 import modelo.Bitacora;
-import modelo.Conexion;
+import util.Conexion;
 import modelo.TipoOperacion;
 
 public class BitacoraDAO {

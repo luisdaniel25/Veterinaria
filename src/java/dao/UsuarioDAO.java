@@ -1,166 +1,143 @@
 package dao;
 
 import modelo.Usuario;
+import util.Conexion;
+import util.PasswordUtil;
+
 import java.sql.*;
-import java.util.*;
-import modelo.Conexion;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDAO {
 
-    Connection con;
-    PreparedStatement ps;
-    ResultSet rs;
-
-    public Usuario validar(String correo, String contrasena) {
-        Usuario u = null;
-        String sql = "SELECT id_usuario, nombre, correo, contrasena, id_rol, id_especialidad "
-                + "FROM tbl_usuarios WHERE correo=? AND contrasena=?";
+    // LOGIN: obtiene usuario por correo y verifica password con BCrypt
+    public Usuario login(String correo, String passwordPlain) {
+        String sql = "SELECT * FROM tbl_usuarios WHERE correo = ?";
         try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, correo);
-            ps.setString(2, contrasena);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    u = mapUsuario(rs);
+                    String hashed = rs.getString("contrasena");
+                    if (PasswordUtil.check(passwordPlain, hashed)) {
+                        Usuario u = new Usuario();
+                        u.setId_usuario(rs.getInt("id_usuario"));
+                        u.setNombre(rs.getString("nombre"));
+                        u.setCorreo(rs.getString("correo"));
+                        u.setContrasena(hashed);
+                        return u;
+                    }
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return u;
+        return null;
     }
 
+    // BUSCAR POR CORREO
+    public Usuario buscarPorCorreo(String correo) {
+        String sql = "SELECT * FROM tbl_usuarios WHERE correo = ?";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, correo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId_usuario(rs.getInt("id_usuario"));
+                    u.setNombre(rs.getString("nombre"));
+                    u.setCorreo(rs.getString("correo"));
+                    u.setContrasena(rs.getString("contrasena"));
+                    return u;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // LISTAR TODOS
     public List<Usuario> listar() {
         List<Usuario> lista = new ArrayList<>();
-        try {
-            con = Conexion.conectarBD();
-            ps = con.prepareStatement("SELECT * FROM tbl_usuarios ORDER BY id_usuario DESC");
-            rs = ps.executeQuery();
+        String sql = "SELECT id_usuario, nombre, correo, contrasena FROM tbl_usuarios ORDER BY id_usuario DESC";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                lista.add(mapUsuario(rs));
+                Usuario u = new Usuario();
+                u.setId_usuario(rs.getInt("id_usuario"));
+                u.setNombre(rs.getString("nombre"));
+                u.setCorreo(rs.getString("correo"));
+                u.setContrasena(rs.getString("contrasena"));
+                lista.add(u);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            cerrar();
         }
         return lista;
     }
 
-    public Usuario getById(int id) {
-        Usuario u = null;
-        try {
-            con = Conexion.conectarBD();
-            ps = con.prepareStatement("SELECT * FROM tbl_usuarios WHERE id_usuario=?");
-            ps.setInt(1, id);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                u = mapUsuario(rs);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            cerrar();
-        }
-        return u;
-    }
-
-    public boolean agregar(Usuario u) {
-        try {
-            con = Conexion.conectarBD();
-            ps = con.prepareStatement("INSERT INTO tbl_usuarios (nombre, correo, contrasena, id_rol, id_especialidad) VALUES (?,?,?,?,?)");
+    // CREAR USUARIO
+    public boolean crear(Usuario u) {
+        String sql = "INSERT INTO tbl_usuarios(nombre, correo, contrasena) VALUES(?,?,?)";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, u.getNombre());
             ps.setString(2, u.getCorreo());
-            ps.setString(3, u.getContrasena());
-            ps.setInt(4, u.getRol());
-            ps.setInt(5, u.getId_especialidad());
+            ps.setString(3, u.getContrasena()); // ya hashed
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        } finally {
-            cerrar();
         }
     }
 
+    // BUSCAR POR ID
+    public Usuario buscarPorId(int id) {
+        String sql = "SELECT * FROM tbl_usuarios WHERE id_usuario = ?";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId_usuario(rs.getInt("id_usuario"));
+                    u.setNombre(rs.getString("nombre"));
+                    u.setCorreo(rs.getString("correo"));
+                    u.setContrasena(rs.getString("contrasena"));
+                    return u;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ACTUALIZAR USUARIO
     public boolean actualizar(Usuario u) {
-        try {
-            con = Conexion.conectarBD();
-            ps = con.prepareStatement("UPDATE tbl_usuarios SET nombre=?, correo=?, contrasena=?, id_rol=?, id_especialidad=? WHERE id_usuario=?");
-            ps.setString(1, u.getNombre());
-            ps.setString(2, u.getCorreo());
-            ps.setString(3, u.getContrasena());
-            ps.setInt(4, u.getRol());
-            ps.setInt(5, u.getId_especialidad());
-            ps.setInt(6, u.getId_usuario());
+        String sql = "UPDATE tbl_usuarios SET nombre=?, correo=?, "
+                + (u.getContrasena() != null && !u.getContrasena().isEmpty() ? "contrasena=? " : "")
+                + "WHERE id_usuario=?";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
+            int idx = 1;
+            ps.setString(idx++, u.getNombre());
+            ps.setString(idx++, u.getCorreo());
+            if (u.getContrasena() != null && !u.getContrasena().isEmpty()) {
+                ps.setString(idx++, u.getContrasena());
+            }
+            ps.setInt(idx++, u.getId_usuario());
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        } finally {
-            cerrar();
         }
     }
 
+    // ELIMINAR USUARIO
     public boolean eliminar(int id) {
-        try {
-            con = Conexion.conectarBD();
-            ps = con.prepareStatement("DELETE FROM tbl_usuarios WHERE id_usuario=?");
+        String sql = "DELETE FROM tbl_usuarios WHERE id_usuario = ?";
+        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        } finally {
-            cerrar();
         }
     }
-
-    private Usuario mapUsuario(ResultSet rs) throws SQLException {
-        return new Usuario(
-                rs.getInt("id_usuario"),
-                rs.getString("nombre"),
-                rs.getString("correo"),
-                rs.getString("contrasena"),
-                rs.getInt("id_rol"),
-                rs.getInt("id_especialidad")
-        );
-    }
-
-    private void cerrar() {
-        try {
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (Exception e) {
-        }
-        try {
-            if (ps != null) {
-                ps.close();
-            }
-        } catch (Exception e) {
-        }
-        try {
-            if (con != null) {
-                con.close();
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    public int contar() {
-        String sql = "SELECT COUNT(*) FROM tbl_usuarios";
-        try (Connection con = Conexion.conectarBD(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
 }
